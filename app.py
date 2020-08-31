@@ -6,6 +6,7 @@ app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = '1234'
 app.config['MYSQL_DB'] = 'foodtracker'
+app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
 
 @app.route("/")
@@ -15,13 +16,20 @@ def home():
 
 @app.route('/add_food', methods=['POST', 'GET'])
 def add_food():
-    if request.method == 'GET':
-        cur = mysql.connection.cursor()
-        cur.execute('SELECT name, protein, carbohydrates, fat FROM foods')
-        result = cur.fetchall()
-        print(result[0][0])
-        return render_template('add_food.html')
-    
+    cur = mysql.connection.cursor()
+    if request.method == 'POST':
+        name = request.form['name']
+        protein = int(request.form['protein'])
+        carbohydrates = int(request.form['carbohydrates'])
+        fat = int(request.form['fat'])
+        calories = protein + carbohydrates + fat
+        cur.execute('''INSERT INTO foods (name, protein, carbohydrates, fat, calories)
+         VALUES (%s, %s, %s, %s, %s)''', [name, protein, carbohydrates, fat, calories])
+        mysql.connection.commit()
+
+    cur.execute('SELECT name, protein, carbohydrates, fat, calories FROM foods')
+    result = cur.fetchall()
+    return render_template('add_food.html', result=result) 
 
 
 
