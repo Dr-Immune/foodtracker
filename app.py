@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request
 from flask_mysqldb import MySQL
+from datetime import datetime
 
 app = Flask(__name__)
 app.config['MYSQL_HOST'] = 'localhost'
@@ -33,9 +34,14 @@ def add_food():
 
 
 
-@app.route('/detail')
-def detail():
-    return render_template('detail.html')
+@app.route('/detail', defaults={'date': datetime.now().date()})
+@app.route('/detail/<date>', defaults={'date': datetime.now()})
+def detail(date):
+    new_date = datetime.strftime(date, '%B %d, %Y')
+    cur = mysql.connection.cursor()
+    cur.execute('SELECT id, name FROM foods ORDER BY name')
+    foods = cur.fetchall()
+    return render_template('detail.html', date=new_date, foods=foods)
     
 if __name__ == "__main__":
     app.run(debug=True)
