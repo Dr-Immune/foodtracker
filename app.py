@@ -44,14 +44,33 @@ def add_food():
 
 
 
-@app.route('/detail', defaults={'date': datetime.now().date()})
-@app.route('/detail/<date>', defaults={'date': datetime.now()})
+@app.route('/detail', defaults={'date': datetime.now().date()}, methods=['POST', 'GET'])
+@app.route('/detail/<date>', methods=['POST', 'GET'])
 def detail(date):
-    new_date = datetime.strftime(date, '%B %d, %Y')
+    if type(date) == str:
+        date = datetime.strptime(date, '%Y-%m-%d').date()
     cur = mysql.connection.cursor()
+    cur.execute('SELECT id FROM date WHERE date = %s', [date])
+    date_id = int(cur.fetchone()['id'])
+    if request.method == 'POST':
+        food_id = request.form['food-select']
+        if type(food_id) and type(date_id) == int:
+            cur.execute('INSERT INTO food_date(food_id, date_id) VALUES(%s, %s)', [food_id, date_id])
+            mysql.connection.commit()
+    new_date = datetime.strftime(date, '%B %d, %Y')
     cur.execute('SELECT id, name FROM foods ORDER BY name')
     foods = cur.fetchall()
-    return render_template('detail.html', date=new_date, foods=foods)
+    cur.execute('''SELECT name, protein, carbohydrates, fat, calories
+                    FROM foods JOIN food_date 
+                    ON foods.id = food_date.food_id 
+                    WHERE food_date.date_id = %s''', [date_id])
+    food_on_date = cur.fetchall()
+    cur.execute('''SELECT SUM(protein), SUM(carbohydrates), SUM(fat), SUM(calories) 
+                    FROM food_date JOIN foods 
+                    ON foods.id = food_date.food_id 
+                    WHERE food_date.date_id = %s''', [date_id])
+    sum_result = cur.fetchone()
+    return render_template('detail.html', date=new_date, raw_date=date, foods=foods, food_on_date=food_on_date, sum_result=sum_result)
     
 if __name__ == "__main__":
     app.run(debug=True)
