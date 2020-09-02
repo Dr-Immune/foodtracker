@@ -17,12 +17,17 @@ def home():
         date = request.form['inputdate']
         cur.execute('INSERT INTO date(date) VALUES(%s)', [date])
         cur.connection.commit()
-    cur.execute('SELECT date FROM date ORDER BY date')
-    result = cur.fetchall()
-    pretty_date = []
-    for item in result:
-        pretty_date.append(datetime.strftime(item['date'], '%B %d, %Y'))
-    return render_template('home.html', pretty_date=pretty_date)
+    cur.execute('''
+    SELECT date, SUM(protein), SUM(carbohydrates), SUM(fat), SUM(calories) 
+    FROM date 
+    LEFT JOIN food_date ON date.id = food_date.date_id
+    LEFT JOIN foods ON foods.id = food_id 
+    GROUP BY date
+    ''')
+    sum_result = cur.fetchall()
+    for item in sum_result:
+        item['newdate'] = datetime.strftime(item['date'], '%B %d, %Y')
+    return render_template('home.html', sum_result=sum_result)
 
 
 @app.route('/add_food', methods=['POST', 'GET'])

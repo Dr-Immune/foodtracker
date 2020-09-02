@@ -19,12 +19,12 @@
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
         <div class="navbar-header">
-          <a class="navbar-brand" href="#">Food Tracker</a>
+          <a class="navbar-brand" href="{{ url_for('home') }}">Food Tracker</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Home</a></li>
-            <li><a href="#">Add Food Item</a></li>
+            <li class="active"><a href="{{ url_for('home') }}">Home</a></li>
+            <li><a href="{{ url_for('add_food') }}">Add Food Item</a></li>
           </ul>
         </div>
       </div>
@@ -44,18 +44,18 @@
           </form>
 
           <div class="page-header"></div>
-          {% for date in pretty_date %}
+          {% for item in sum_result %}
           <div class="panel panel-primary">
             <div class="panel-heading">
-              <h3 class="panel-title">{{ date }}</h3>
+              <h3 class="panel-title">{{ item['newdate'] }}</h3>
             </div>
             <div class="panel-body">
               <ul class="nav nav-pills" role="tablist">
-                <li><a>Protein: <span class="badge">100</span></a></li>
-                <li><a>Carbohydates: <span class="badge">200</span></a></li>
-                <li><a>Fat: <span class="badge">50</span></a></li>
-                <li><a>Calories: <span class="badge">1650</span></a></li>
-                <li><a href="#" type="button" class="btn btn-link">View Detail</a></li>
+                <li><a>Protein: <span class="badge">{{ item['SUM(protein)'] }}</span></a></li>
+                <li><a>Carbohydates: <span class="badge">{{ item['SUM(carbohydrates)'] }}</span></a></li>
+                <li><a>Fat: <span class="badge">{{ item['SUM(fat)'] }}</span></a></li>
+                <li><a>Calories: <span class="badge">{{ item['SUM(calories)'] }}</span></a></li>
+                <li><a href="{{ url_for('detail', date=item['date']) }}" type="button" class="btn btn-link">View Detail</a></li>
               </ul>
             </div>
           </div>
