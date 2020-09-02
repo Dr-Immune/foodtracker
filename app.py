@@ -10,9 +10,19 @@ app.config['MYSQL_DB'] = 'foodtracker'
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
 
-@app.route("/")
+@app.route("/", methods=['POST', 'GET'])
 def home():
-    return render_template('home.html')
+    cur = mysql.connection.cursor()
+    if request.method == 'POST':
+        date = request.form['inputdate']
+        cur.execute('INSERT INTO date(date) VALUES(%s)', [date])
+        cur.connection.commit()
+    cur.execute('SELECT date FROM date ORDER BY date')
+    result = cur.fetchall()
+    pretty_date = []
+    for item in result:
+        pretty_date.append(datetime.strftime(item['date'], '%B %d, %Y'))
+    return render_template('home.html', pretty_date=pretty_date)
 
 
 @app.route('/add_food', methods=['POST', 'GET'])
